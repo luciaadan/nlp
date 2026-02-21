@@ -317,7 +317,7 @@ errors_lr = df_predictions_lr[
 # Displaying the first 20 misclassified samples
 print("Logistic Regression")
 print(f"Total Errors: {len(errors_lr)}")
-display(errors_lr.head(20))
+print(errors_lr.head(20))
 
 # Error Analysis for Linear SVM
 df_predictions_svm = pd.DataFrame(
@@ -337,5 +337,5 @@ errors_svm = df_predictions_svm[
 # Displaying the first 20 misclassified samples
 print("\nLinear SVM")
 print(f"Total Errors: {len(errors_svm)}")
-display(errors_svm.head(20))
+print(errors_svm.head(20))
 
