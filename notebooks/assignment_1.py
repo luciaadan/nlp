@@ -294,9 +294,8 @@ plt.title("Test set Confusion Matrix: Linear SVM")
 plt.tight_layout()
 plt.show()
 
-print("-----------------------------------------------------------")
+
 print("----------------------Error analysis-----------------------")
-print("-----------------------------------------------------------")
 
 pd.set_option("display.max_colwidth", None)
 
