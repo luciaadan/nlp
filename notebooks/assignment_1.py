@@ -12,7 +12,6 @@ from sklearn.metrics import (
 )
 import matplotlib.pyplot as plt
 
-# print("-------------Preprocessing the data.-----------------------")
 # Loading the dataset and splitting it into train, validation, and test sets
 splits = {"train": "train.jsonl", "test": "test.jsonl"}
 temp_train_set = pd.read_json("hf://datasets/sh0416/ag_news/" + splits["train"], lines=True)
@@ -54,9 +53,7 @@ X_train = tfidf.fit_transform(ag_train["title"] + " " + ag_train["description"])
 X_val = tfidf.transform(ag_val["title"] + " " + ag_val["description"])
 X_test = tfidf.transform(ag_test["title"] + " " + ag_test["description"])
 
-print("-----------------------------------------------------------")
 print("--------------------Logistic regression--------------------")
-print("-----------------------------------------------------------")
 
 
 def grid_search_lr(param_grid: dict, x_train, y_train: pd.DataFrame, x_val, y_val: pd.DataFrame, max_iter: int = 100):
@@ -176,9 +173,7 @@ plt.title("Test set Confusion Matrix: Logistic Regression")
 plt.tight_layout()
 plt.show()
 
-print("-----------------------------------------------------------")
 print("---------------------------SVM-----------------------------")
-print("-----------------------------------------------------------")
 
 def grid_search_svm(param_grid: dict, x_train, y_train: pd.DataFrame, x_val, y_val: pd.DataFrame, max_iter: int=100):
     """
