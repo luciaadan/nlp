@@ -642,7 +642,7 @@ plot_learning_curves_split(res_cnn)
 
 
 # ABLATION STUDY ON DROPOUT
-def run_ablation_dropout(dropout: float, seed: int = 13) -> tuple:
+def run_ablation_dropout(dropout: float, seed: int = 13) -> dict:
     set_seed(seed)
 
     lstm_model = LSTMClassifier(

@@ -81,32 +81,40 @@ def run_ablation_dropout(dropout: float, seed: int = 13) -> dict:
     }
 
 
-# Run the ablation study for different dropout rates
-ablation_d0 = run_ablation_dropout(dropout=0.0)
-ablation_d03 = run_ablation_dropout(dropout=0.3)
-ablation_d05 = run_ablation_dropout(dropout=0.5)
+def print_ablation_results() -> None:
+    """
+    Performs the ablation study on dropout and prints the results in a tabular format.
 
-# Compile results into a DataFrame for easier comparison
-rows = []
-for result in [ablation_d0, ablation_d03, ablation_d05]:
-    d = result["dropout"]
-    for arch in ["lstm", "cnn"]:
-        r = result[arch]
-        rows.append(
-            {
-                "model": arch.upper(),
-                "dropout": d,
-                "val_acc": round(r["val"]["acc"], 4),
-                "val_macro_f1": round(r["val"]["f1"], 4),
-                "test_acc": round(r["test"]["acc"], 4),
-                "test_macro_f1": round(r["test"]["f1"], 4),
-            }
-        )
+    Returns:
+        None
+    """
+    # Run the ablation study for different dropout rates
+    ablation_d0 = run_ablation_dropout(dropout=0.0)
+    ablation_d03 = run_ablation_dropout(dropout=0.3)
+    ablation_d05 = run_ablation_dropout(dropout=0.5)
 
-df_ablation = (
-    pd.DataFrame(rows).sort_values(["model", "dropout"]).reset_index(drop=True)
-)
-print(df_ablation)
+    # Compile results into a DataFrame for easier comparison
+    rows = []
+    for result in [ablation_d0, ablation_d03, ablation_d05]:
+        d = result["dropout"]
+        for arch in ["lstm", "cnn"]:
+            r = result[arch]
+            rows.append(
+                {
+                    "model": arch.upper(),
+                    "dropout": d,
+                    "val_acc": round(r["val"]["acc"], 4),
+                    "val_macro_f1": round(r["val"]["f1"], 4),
+                    "test_acc": round(r["test"]["acc"], 4),
+                    "test_macro_f1": round(r["test"]["f1"], 4),
+                }
+            )
+
+    df_ablation = (
+        pd.DataFrame(rows).sort_values(["model", "dropout"]).reset_index(drop=True)
+    )
+
+    print(df_ablation)
 
 
 print("FROM TUTORIAL NOTEBOOK")

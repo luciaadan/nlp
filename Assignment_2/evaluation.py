@@ -223,7 +223,7 @@ def count_parameters(model: nn.Module) -> int:
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def train_and_time(name: str, model: nn.Module):
+def train_and_time(name: str, model: nn.Module) -> dict:
     """
     Trains the given model and measures the total training time.
 
@@ -279,49 +279,62 @@ cnn = CNNTextClassifier(
     pad_idx=PAD_IDX,
 ).to(device)
 
-# Printing the number of trainable parameters for both models before training
-print("Number of trainable parameters:")
-print("LSTM:", count_parameters(lstm))
-print("CNN: ", count_parameters(cnn))
-
-# Training both models and collecting results
-print("Training LSTM...")
 res_lstm = train_and_time("LSTM", lstm)
-
-print("Training CNN...")
 res_cnn = train_and_time("CNN", cnn)
 
-# Comparing results in a DataFrame
-rows = []
-for res in [res_lstm, res_cnn]:
-    rows.append(
-        [
-            res["name"],
-            res["val"]["acc"],
-            res["val"]["f1"],
-            res["test"]["acc"],
-            res["test"]["f1"],
-            res["time_s_total"],
-        ]
+
+def print_evaluation_results() -> None:
+    """
+    Prints the evaluation results for both the LSTM and CNN models,
+    including the number of trainable parameters,
+    validation and test metrics, and a comparison DataFrame.
+
+    Returns:
+        None: Displays the evaluation results and comparison DataFrame.
+    """
+    # Printing the number of trainable parameters for both models before training
+    print("Number of trainable parameters:")
+    print("LSTM:", count_parameters(lstm))
+    print("CNN: ", count_parameters(cnn))
+
+    # Training both models and collecting results
+    print("Training LSTM...")
+    train_lstm = res_lstm
+
+    print("Training CNN...")
+    train_cnn = res_cnn
+
+    # Comparing results in a DataFrame
+    rows = []
+    for res in [train_lstm, train_cnn]:
+        rows.append(
+            [
+                res["name"],
+                res["val"]["acc"],
+                res["val"]["f1"],
+                res["test"]["acc"],
+                res["test"]["f1"],
+                res["time_s_total"],
+            ]
+        )
+
+    df_compare = (
+        DataFrame(
+            rows,
+            columns=[
+                "model",
+                "val_acc",
+                "val_macro_f1",
+                "test_acc",
+                "test_macro_f1",
+                "train_time_s",
+            ],
+        )
+        .sort_values(by=["val_macro_f1", "val_acc"], ascending=False)
+        .reset_index(drop=True)
     )
 
-df_compare = (
-    DataFrame(
-        rows,
-        columns=[
-            "model",
-            "val_acc",
-            "val_macro_f1",
-            "test_acc",
-            "test_macro_f1",
-            "train_time_s",
-        ],
-    )
-    .sort_values(by=["val_macro_f1", "val_acc"], ascending=False)
-    .reset_index(drop=True)
-)
-
-print(df_compare)
+    print(df_compare)
 
 
 # Confusion matrices for both models on dev and test sets
@@ -351,21 +364,22 @@ def plot_confusion_matrix(
     plt.show()
 
 
-# Confusion matrix for LSTM
-plot_confusion_matrix(
-    res_lstm["val"]["y_true"], res_lstm["val"]["y_pred"], "LSTM - Dev Set"
-)
-plot_confusion_matrix(
-    res_lstm["test"]["y_true"], res_lstm["test"]["y_pred"], "LSTM - Test Set"
-)
+def print_conf_mat():
+    # Confusion matrix for LSTM
+    plot_confusion_matrix(
+        res_lstm["val"]["y_true"], res_lstm["val"]["y_pred"], "LSTM - Dev Set"
+    )
+    plot_confusion_matrix(
+        res_lstm["test"]["y_true"], res_lstm["test"]["y_pred"], "LSTM - Test Set"
+    )
 
-# Confusion matrix for CNN
-plot_confusion_matrix(
-    res_cnn["val"]["y_true"], res_cnn["val"]["y_pred"], "CNN - Dev Set"
-)
-plot_confusion_matrix(
-    res_cnn["test"]["y_true"], res_cnn["test"]["y_pred"], "CNN - Test Set"
-)
+    # Confusion matrix for CNN
+    plot_confusion_matrix(
+        res_cnn["val"]["y_true"], res_cnn["val"]["y_pred"], "CNN - Dev Set"
+    )
+    plot_confusion_matrix(
+        res_cnn["test"]["y_true"], res_cnn["test"]["y_pred"], "CNN - Test Set"
+    )
 
 
 # Learning curves
@@ -403,6 +417,12 @@ def plot_learning_curves_split(res: dict) -> None:
     plt.show()
 
 
-# Plotting the learning curves for both models
-plot_learning_curves_split(res_lstm)
-plot_learning_curves_split(res_cnn)
+def print_learning_curves() -> None:
+    """
+    Plotting the learning curves for both models.
+
+    Returns:
+        None: Displays the learning curves for both LSTM and CNN models.
+    """
+    plot_learning_curves_split(res_lstm)
+    plot_learning_curves_split(res_cnn)

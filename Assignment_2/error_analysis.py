@@ -63,14 +63,21 @@ def get_misclassified_df(
 
 pd.set_option("display.max_colwidth", None)
 
-# Getting missclassified items for the LSTM and displaying them in a DataFrame
-errors_lstm = get_misclassified_df(lstm, test_set, max_items=20)
-print("LSTM")
-print(f"Showing first {len(errors_lstm)} misclassified examples from test set")
-print(errors_lstm)
+def print_misclassified_examples() -> None:
+    """
+    Prints misclassified examples for both the LSTM and CNN models.
+    
+    Returns:
+        None
+    """
+    # Getting missclassified items for the LSTM and displaying them in a DataFrame
+    errors_lstm = get_misclassified_df(lstm, test_set, max_items=20)
+    print("LSTM")
+    print(f"Showing first {len(errors_lstm)} misclassified examples from test set")
+    print(errors_lstm)
 
-# Getting missclassified items for the CNN and displaying them in a DataFrame
-errors_cnn = get_misclassified_df(cnn, test_set, max_items=20)
-print("\nCNN")
-print(f"Showing first {len(errors_cnn)} misclassified examples from test set")
-print(errors_cnn)
+    # Getting missclassified items for the CNN and displaying them in a DataFrame
+    errors_cnn = get_misclassified_df(cnn, test_set, max_items=20)
+    print("\nCNN")
+    print(f"Showing first {len(errors_cnn)} misclassified examples from test set")
+    print(errors_cnn)
