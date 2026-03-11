@@ -4,22 +4,34 @@ import re
 import time
 from collections import Counter
 from dataclasses import dataclass
-import pandas as pd
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from datasets import load_dataset
 from pandas import DataFrame
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+)
 from torch import device
 from torch.utils.data import DataLoader, Dataset
-import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
-
 
 
 def set_seed(seed: int = 13) -> None:
-    """Set random seeds for reproducibility."""
+    """
+    Sets random seeds for reproducibility.
+
+    Args:
+        seed (int): The seed value to use for random number generators. Defaults to 13
+
+    Returns:
+        None
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -30,6 +42,7 @@ def set_seed(seed: int = 13) -> None:
 
 set_seed(13)
 
+# Checking the available GPU and choosing a device
 if torch.cuda.is_available():
     print(f"Using GPU: {torch.cuda.get_device_name(0)}")
     device = torch.device("cuda")
@@ -569,6 +582,7 @@ print(df_compare)
 # CONFUSION MATRICES
 LABEL_NAMES = ["World", "Sports", "Business", "Sci/Tech"]
 
+
 def plot_confusion_matrix(y_true, y_pred, title: str):
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(5, 4))
@@ -578,22 +592,31 @@ def plot_confusion_matrix(y_true, y_pred, title: str):
     plt.tight_layout()
     plt.show()
 
+
 # LSTM
-plot_confusion_matrix(res_lstm["val"]["y_true"],  res_lstm["val"]["y_pred"],  "LSTM - Dev Set")
-plot_confusion_matrix(res_lstm["test"]["y_true"], res_lstm["test"]["y_pred"], "LSTM - Test Set")
+plot_confusion_matrix(
+    res_lstm["val"]["y_true"], res_lstm["val"]["y_pred"], "LSTM - Dev Set"
+)
+plot_confusion_matrix(
+    res_lstm["test"]["y_true"], res_lstm["test"]["y_pred"], "LSTM - Test Set"
+)
 
 # CNN
-plot_confusion_matrix(res_cnn["val"]["y_true"],  res_cnn["val"]["y_pred"],  "CNN - Dev Set")
-plot_confusion_matrix(res_cnn["test"]["y_true"], res_cnn["test"]["y_pred"], "CNN - Test Set")
+plot_confusion_matrix(
+    res_cnn["val"]["y_true"], res_cnn["val"]["y_pred"], "CNN - Dev Set"
+)
+plot_confusion_matrix(
+    res_cnn["test"]["y_true"], res_cnn["test"]["y_pred"], "CNN - Test Set"
+)
 
 
 # LEARNING CURVES
 def plot_learning_curves_split(res):
     """Plot train loss and val macro-F1 on separate y-axes for one model."""
     hist = res["hist"]
-    epochs   = [h["epoch"]     for h in hist]
-    tr_loss  = [h["train_loss"] for h in hist]
-    val_f1   = [h["val_f1"]    for h in hist]
+    epochs = [h["epoch"] for h in hist]
+    tr_loss = [h["train_loss"] for h in hist]
+    val_f1 = [h["val_f1"] for h in hist]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
     fig.suptitle(res["name"], fontsize=13, fontweight="bold")
@@ -612,6 +635,7 @@ def plot_learning_curves_split(res):
 
     plt.tight_layout()
     plt.show()
+
 
 plot_learning_curves_split(res_lstm)
 plot_learning_curves_split(res_cnn)
@@ -639,23 +663,43 @@ def run_ablation_dropout(dropout: float, seed: int = 13) -> tuple:
         pad_idx=PAD_IDX,
     ).to(device)
 
-    hist_lstm = fit(lstm_model, train_loader, val_loader, lr=LR,
-                    max_epochs=MAX_EPOCHS, patience=PATIENCE, clip_grad_norm=CLIP)
-    hist_cnn  = fit(cnn_model,  train_loader, val_loader, lr=LR,
-                    max_epochs=MAX_EPOCHS, patience=PATIENCE, clip_grad_norm=CLIP)
+    hist_lstm = fit(
+        lstm_model,
+        train_loader,
+        val_loader,
+        lr=LR,
+        max_epochs=MAX_EPOCHS,
+        patience=PATIENCE,
+        clip_grad_norm=CLIP,
+    )
+    hist_cnn = fit(
+        cnn_model,
+        train_loader,
+        val_loader,
+        lr=LR,
+        max_epochs=MAX_EPOCHS,
+        patience=PATIENCE,
+        clip_grad_norm=CLIP,
+    )
 
     return {
         "dropout": dropout,
-        "lstm": {"model": lstm_model, "hist": hist_lstm,
-                 "val": evaluate(lstm_model, val_loader),
-                 "test": evaluate(lstm_model, test_loader)},
-        "cnn":  {"model": cnn_model,  "hist": hist_cnn,
-                 "val": evaluate(cnn_model,  val_loader),
-                 "test": evaluate(cnn_model,  test_loader)},
+        "lstm": {
+            "model": lstm_model,
+            "hist": hist_lstm,
+            "val": evaluate(lstm_model, val_loader),
+            "test": evaluate(lstm_model, test_loader),
+        },
+        "cnn": {
+            "model": cnn_model,
+            "hist": hist_cnn,
+            "val": evaluate(cnn_model, val_loader),
+            "test": evaluate(cnn_model, test_loader),
+        },
     }
 
 
-ablation_d0  = run_ablation_dropout(dropout=0.0)
+ablation_d0 = run_ablation_dropout(dropout=0.0)
 ablation_d03 = run_ablation_dropout(dropout=0.3)  # matches trained baselines
 ablation_d05 = run_ablation_dropout(dropout=0.5)
 
@@ -664,34 +708,43 @@ for result in [ablation_d0, ablation_d03, ablation_d05]:
     d = result["dropout"]
     for arch in ["lstm", "cnn"]:
         r = result[arch]
-        rows.append({
-            "model":       arch.upper(),
-            "dropout":     d,
-            "val_acc":     round(r["val"]["acc"], 4),
-            "val_macro_f1": round(r["val"]["f1"], 4),
-            "test_acc":    round(r["test"]["acc"], 4),
-            "test_macro_f1": round(r["test"]["f1"], 4),
-        })
+        rows.append(
+            {
+                "model": arch.upper(),
+                "dropout": d,
+                "val_acc": round(r["val"]["acc"], 4),
+                "val_macro_f1": round(r["val"]["f1"], 4),
+                "test_acc": round(r["test"]["acc"], 4),
+                "test_macro_f1": round(r["test"]["f1"], 4),
+            }
+        )
 
 df_ablation = (
-    pd.DataFrame(rows)
-    .sort_values(["model", "dropout"])
-    .reset_index(drop=True)
+    pd.DataFrame(rows).sort_values(["model", "dropout"]).reset_index(drop=True)
 )
 print(df_ablation)
 
 print("FROM TUTORIAL NOTEBOOK")
 print("You should interpret the results in terms of bias and variance.")
-print("- If dropout 0.0 does well on training but worse on validation, it suggests overfitting. However, the effect of overfitting is not as pronounced here as early stopping effecively is a form of regularization as well. Try running the pipeline without early stopping and compare these results again.")
-print("- Note that together with early stopping, dropout of 0.5 might hurt both validation and test, and therefore suggests underfitting.")
-print("- If an intermediate dropout does best, it suggests a useful regularization strength for this model and data size.")
+print(
+    "- If dropout 0.0 does well on training but worse on validation, it suggests overfitting. However, the effect of overfitting is not as pronounced here as early stopping effecively is a form of regularization as well. Try running the pipeline without early stopping and compare these results again."
+)
+print(
+    "- Note that together with early stopping, dropout of 0.5 might hurt both validation and test, and therefore suggests underfitting."
+)
+print(
+    "- If an intermediate dropout does best, it suggests a useful regularization strength for this model and data size."
+)
 
 
 # ERROR ANALYSIS
 # TODO: Note, that maybe we should adjust this to the best model from the ablation study
 LABEL_NAMES_MAP = {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
 
-def get_misclassified_df(model: nn.Module, hf_split, max_items: int = 20) -> pd.DataFrame:
+
+def get_misclassified_df(
+    model: nn.Module, hf_split, max_items: int = 20
+) -> pd.DataFrame:
     """Return a DataFrame of up to max_items misclassified examples."""
     model.eval()
     rows = []
@@ -700,7 +753,7 @@ def get_misclassified_df(model: nn.Module, hf_split, max_items: int = 20) -> pd.
         ids = numericalize(tokens, vocab)[:200]
         if len(ids) == 0:
             ids = [vocab[UNK]]
-        x       = torch.tensor(ids, dtype=torch.long).unsqueeze(0).to(device)
+        x = torch.tensor(ids, dtype=torch.long).unsqueeze(0).to(device)
         lengths = torch.tensor([len(ids)], dtype=torch.long).to(device)
 
         # Labels in the raw HF dataset are 1-indexed; shift to 0-indexed
@@ -712,12 +765,14 @@ def get_misclassified_df(model: nn.Module, hf_split, max_items: int = 20) -> pd.
 
         if y_pred != y_true:
             snippet = (ex["title"] + " — " + ex["description"]).replace("\n", " ")
-            rows.append({
-                "title":      ex["title"][:120],
-                "description": ex["description"][:200],
-                "true_label": LABEL_NAMES_MAP[y_true],
-                "pred_label": LABEL_NAMES_MAP[y_pred],
-            })
+            rows.append(
+                {
+                    "title": ex["title"][:120],
+                    "description": ex["description"][:200],
+                    "true_label": LABEL_NAMES_MAP[y_true],
+                    "pred_label": LABEL_NAMES_MAP[y_pred],
+                }
+            )
 
         if len(rows) >= max_items:
             break
