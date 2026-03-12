@@ -383,35 +383,23 @@ def print_conf_mat():
 
 
 # Learning curves
-def plot_learning_curves_split(res: dict) -> None:
-    """
-    Plots train loss and val macro-F1 on separate y-axes for one model.
-
-    Args:
-        res (dict): A dictionary containing the model's training history and name.
-
-    Returns:
-        None: Displays the learning curves plot.
-    """
+def plot_learning_curves_split(res):
+    """Plot train loss vs validation loss for one model."""
     hist = res["hist"]
-    epochs = [h["epoch"] for h in hist]
-    tr_loss = [h["train_loss"] for h in hist]
-    val_f1 = [h["val_f1"] for h in hist]
+    epochs    = [h["epoch"]      for h in hist]
+    train_loss = [h["train_loss"] for h in hist]
+    val_loss   = [h["val_loss"]   for h in hist]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
-    fig.suptitle(res["name"], fontsize=13, fontweight="bold")
+    plt.figure(figsize=(6, 4))
+    plt.title(res["name"], fontsize=13, fontweight="bold")
 
-    ax1.plot(epochs, tr_loss, marker="o", color="steelblue")
-    ax1.set_title("Train Loss")
-    ax1.set_xlabel("Epoch")
-    ax1.set_ylabel("Cross-entropy loss")
-    ax1.grid(True, linestyle="--", alpha=0.5)
+    plt.plot(epochs, train_loss, marker="o", label="Train Loss", color="steelblue")
+    plt.plot(epochs, val_loss, marker="o", label="Validation Loss", color="darkorange")
 
-    ax2.plot(epochs, val_f1, marker="o", color="darkorange")
-    ax2.set_title("Dev Macro F1")
-    ax2.set_xlabel("Epoch")
-    ax2.set_ylabel("Macro F1")
-    ax2.grid(True, linestyle="--", alpha=0.5)
+    plt.xlabel("Epoch")
+    plt.ylabel("Cross-entropy loss")
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.legend()
 
     plt.tight_layout()
     plt.show()
