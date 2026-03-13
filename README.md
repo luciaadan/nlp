@@ -1,4 +1,4 @@
-### Commands to reproduce main results for Assignment 1
+# Commands to reproduce main results for Assignment 2
 ## To run the models first clone the repository to a device using the following command in the terminal
 ```bash
 git clone https://github.com/luciaadan/nlp.git
@@ -13,6 +13,6 @@ source .venv/bin/activate
 ---
 ## Since the most important file is a python file, the code can be run in the terminal by the following commands:
 ```bash
-cd notebooks
-python3 assignment_1.py
+cd Assignment_2
+python3 main.py
 ```
